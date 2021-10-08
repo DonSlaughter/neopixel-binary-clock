@@ -24,10 +24,14 @@
 
 #include "ntp.h"
 #include "timezone.h"
+#include "secrets.h"
+
+void UpdateClock();
+void SerialPrintDateTime();
+void NeopixelWriteNumber(uint16_t, HslColor, uint8_t);
+void NeopixelWriteTime();
 
 // WiFi
-char ssid[] = "";
-char pass[] = "";
 WiFiUDP udp;
 unsigned int udpLocalPort = 2390;
 
