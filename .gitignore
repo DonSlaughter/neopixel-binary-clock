@@ -1,4 +1,5 @@
 *.sublime-*
 *.html
 
+./sourcecode/compile_commands.json
 secrets.h
