@@ -1,7 +1,6 @@
 # neopixel-binary-clock
 Binary clock using Neopixels, ESP8266 and DS3231 real time clock.
 
-![front](front.jpg)
 
 ## Libraries used
 * [esp8266](https://github.com/esp8266/Arduino)
@@ -32,5 +31,3 @@ NeoPixels are unused. The program uses the following offsets to address the pixe
 ### DS3231
 * SDA -> GPIO04 (D2)
 * SCL -> GPIO05 (D1)
-
-![back](back.jpg)
