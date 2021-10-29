@@ -15,3 +15,4 @@ void print_connection();
 void RTC_Update();
 bool RTC_Valid();
 void printDateTime();
+void printDateTime(time_t t, const char *tz);
