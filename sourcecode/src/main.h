@@ -19,3 +19,7 @@ void print_connection();
 void RTC_Update();
 //Print formatted Timestring on Serial Monitor
 void printDateTime(time_t t, const char *tz);
+//
+void WS2812B_Write_Time();
+
+void WS2812B_Write_Number(uint16_t startIndex, uint8_t number);
