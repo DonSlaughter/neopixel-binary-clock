@@ -10,9 +10,12 @@
 */
 
 //Prototypes:
+//Connect to WiFi Network described in secrets.h
 void connect_to_wifi();
+//Print the connection details on Serial Monitor
 void print_connection();
+//Update the RealtimeClock with NTP Server
+//Gets epochTime from Timeserver and stores the value in the RTC
 void RTC_Update();
-bool RTC_Valid();
-void printDateTime();
+//Print formatted Timestring on Serial Monitor
 void printDateTime(time_t t, const char *tz);

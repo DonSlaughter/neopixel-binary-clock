@@ -6,6 +6,7 @@
 #include <RtcDS3231.h>
 #include <TimeLib.h>
 #include <Timezone.h>
+#include <FastLED.h>
 #include "secrets.h"
 #include "main.h"
 
@@ -15,37 +16,37 @@ WiFiUDP ntpUDP;
 //NTPClient updates normall every minute
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org");
 
-TimeChangeRule myDST = {"CET", Last, Sun, Oct, 3, 60};
-TimeChangeRule mySTD = {"CEST", Last, Sun, Mar, 2, 120};
+//Changing Timezone and using Daylightsaving
+TimeChangeRule mySTD = {"CET", Last, Sun, Oct, 3, 60};
+TimeChangeRule myDST = {"CEST", Last, Sun, Mar, 2, 120};
 Timezone myTZ(myDST, mySTD);
+TimeChangeRule *tcr;
 
 RtcDS3231<TwoWire> Rtc(Wire);
+//SCL pin D1
+//SDA pin D2
 
-TimeChangeRule *tcr;
+//time_t sctructs to store timevalues
+time_t utc;
+time_t local;
+
 
 void setup() {
 	Serial.begin(115200);
 	delay(250);
 	connect_to_wifi();
 	print_connection();
-
 	timeClient.begin();
-	delay(2000);
+	delay(250);
 	Rtc.Begin();
 	RTC_Update();
+	delay(1000);
 }
 
 void loop(){
-	delay(1000);
-	time_t utc =  Rtc.GetDateTime();
-	time_t local = myTZ.toLocal(utc, &tcr);
-	printDateTime(utc, "UTC");
+	utc =  Rtc.GetDateTime();
+	local = myTZ.toLocal(utc, &tcr);
 	printDateTime(local, tcr -> abbrev);
-	delay(10000);
-//	RtcDateTime currTime = Rtc.GetDateTime();
-//	Serial.println(currTime);
-//	Serial.println(timeClient.getFormattedTime());
-//	RTC_Update();
 }
 
 void connect_to_wifi(){
@@ -73,8 +74,7 @@ void RTC_Update(){
 	Rtc.SetDateTime(epochTime);
 }
 
-void printDateTime(time_t t, const char *tz)
-{
+void printDateTime(time_t t, const char *tz){
 	char buf[32];
 	char m[4];    // temporary storage for month string (DateStrings.cpp uses shared buffer)
 	strcpy(m, monthShortStr(month(t)));
