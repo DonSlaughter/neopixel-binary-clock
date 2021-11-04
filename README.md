@@ -1,17 +1,17 @@
 # neopixel-binary-clock
 Binary clock using Neopixels, ESP8266 and DS3231 real time clock.
 
-#PCB Design
+# PCB Design
 ![pcb](binaryclock.jpg)
 
-#idea from civ0
+# idea from civ0
 https://github.com/civ0/neopixel-binary-clock
 
-##Timezones
+## Timezones
 Timeszones are changend with Lib 'Timezones.h'
 Everything can be changed with TimeChangeRule.
 
-##Parts
+## Parts
 * ESP8266 WeemosD1 Mini
 * Logic Level Shifter
 * DS3231
@@ -22,5 +22,5 @@ Everything can be changed with TimeChangeRule.
 * Screw Terminal
 * 26 x WS2812B SMD Led's
 
-##Code
+## Code
 Code needs to be cleand up
