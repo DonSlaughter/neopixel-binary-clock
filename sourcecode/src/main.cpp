@@ -67,7 +67,6 @@ void connect_to_wifi()
 		delay(500);
 		Serial.print(".");
 	}
-
 }
 
 void print_connection()
@@ -99,12 +98,11 @@ void printDateTime(time_t t, const char *tz)
 void WS2812B_Write_Time()
 {
 	WS2812B_Write_Number(0, second(local));
-	WS2812B_Write_Number(8, minute(local));
-	WS2812B_Write_Number(16, hour(local));
-	WS2812B_Write_Number(24, day(local));
-	WS2812B_Write_Number(32, month(local));
+	WS2812B_Write_Number(6, minute(local));
+	WS2812B_Write_Number(12, hour(local));
+	WS2812B_Write_Number(17, day(local));
+	WS2812B_Write_Number(22, month(local));
 	FastLED.show();
-
 }
 
 void WS2812B_Write_Number(uint16_t startIndex, uint8_t number)
