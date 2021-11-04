@@ -294,7 +294,6 @@ NoConn ~ 1900 2450
 NoConn ~ 1900 2550
 NoConn ~ 1900 2750
 NoConn ~ 1900 2850
-NoConn ~ 1900 2950
 NoConn ~ 1100 2150
 NoConn ~ 1100 2450
 NoConn ~ 1100 2550
@@ -982,4 +981,5 @@ Text GLabel 4300 6350 0    50   Input ~ 0
 SDA
 NoConn ~ 4300 6050
 NoConn ~ 4300 6150
+NoConn ~ 1900 2950
 $EndSCHEMATC
