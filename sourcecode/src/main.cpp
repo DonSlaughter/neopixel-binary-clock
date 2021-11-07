@@ -29,24 +29,33 @@ RtcDS3231<TwoWire> Rtc(Wire);
 //time_t sctructs to store timevalues
 time_t utc;
 time_t local;
+time_t old_local;
 
 #define LED_PIN D5
 #define NUM_LEDS 63
-#define COLOR_ORDER GBR
+#define COLOR_ORDER BRG
 
 CRGB leds[NUM_LEDS];
+
+unsigned long ntp_start_time;
+//Wait 10 seconds for NTP-Server
+unsigned long ntp_wait_time = 10000;
 
 void setup()
 {
 	Serial.begin(115200);
 	delay(10);
-	FastLED.addLeds<WS2812B, LED_PIN>(leds, NUM_LEDS);
+	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+	//FastLED.setBrightness(5);
 	connect_to_wifi();
 	print_connection();
 	timeClient.begin();
 	delay(25);
 	Rtc.Begin();
-	RTC_Update();
+	ntp_start_time = millis();
+	//RTC_Update();
+	utc = Rtc.GetDateTime();
+	old_local = myTZ.toLocal(utc, &tcr);
 	delay(10);
 }
 
@@ -54,8 +63,11 @@ void loop()
 {
 	utc =  Rtc.GetDateTime();
 	local = myTZ.toLocal(utc, &tcr);
-	printDateTime(local, tcr -> abbrev);
-	WS2812B_Write_Time();
+	if (second(local) != second(old_local)){
+		printDateTime(local, tcr -> abbrev);
+		WS2812B_Write_Time();
+		old_local = myTZ.toLocal(utc, &tcr);
+	}
 }
 
 void connect_to_wifi()
@@ -83,6 +95,7 @@ void RTC_Update()
 	timeClient.update();
 	unsigned long epochTime = timeClient.getEpochTime();
 	Rtc.SetDateTime(epochTime);
+	Serial.println("Time Set");
 }
 
 void printDateTime(time_t t, const char *tz)
@@ -97,24 +110,24 @@ void printDateTime(time_t t, const char *tz)
 
 void WS2812B_Write_Time()
 {
-	WS2812B_Write_Number(0, second(local));
-	WS2812B_Write_Number(6, minute(local));
-	WS2812B_Write_Number(12, hour(local));
-	WS2812B_Write_Number(17, day(local));
-	WS2812B_Write_Number(22, month(local));
+	WS2812B_Write_Number(0, 5, second(local), 120);
+	WS2812B_Write_Number(6, 11, minute(local), 0);
+	WS2812B_Write_Number(12, 16, hour(local), 90);
+	WS2812B_Write_Number(17, 21, day(local), 247);
+	WS2812B_Write_Number(22, 25, month(local), 190);
 	FastLED.show();
 }
 
-void WS2812B_Write_Number(uint16_t startIndex, uint8_t number)
+void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, uint8_t color)
 {
-	for (uint16_t i = 0; i !=8; i++) {
+	for (uint16_t i = 0; i !=endIndex; i++) {
 		uint8_t mask = 1 << i;
 		uint16_t pixelID = startIndex +i;
 		if ((number & mask) != 0) {
-			leds[pixelID] = CRGB::Red;
+			leds[pixelID] = CHSV(color,255,255);
 		}
 		else {
-			leds[pixelID] = CRGB::Black;
+			leds[pixelID] = CHSV(0,0,0);
 		}
 	}
 }
