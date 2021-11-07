@@ -6,7 +6,8 @@
 #include <RtcDS3231.h>
 #include <TimeLib.h>
 #include <Timezone.h>
-#include <FastLED.h>
+#include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
 #include "secrets.h"
 #include "main.h"
 
@@ -31,11 +32,17 @@ time_t utc;
 time_t local;
 time_t old_local;
 
-#define LED_PIN D5
-#define NUM_LEDS 63
+//#define LED_PIN D5
+#define NUM_LEDS 26
 #define COLOR_ORDER BRG
+const int LED_PIN = D5;
+const uint8_t ColorCount = 5;
 
-CRGB leds[NUM_LEDS];
+NeoPixelBus<NeoGrbFeature, Neo800KbpsMethod> strip(NUM_LEDS, LED_PIN);
+HslColor Black(0.0, 0.0, 0.0);
+HslColor Colors[ColorCount];
+const float distance = 1.0 / (float)ColorCount;
+const float step = 0.0001;
 
 unsigned long ntp_start_time;
 //Wait 10 seconds for NTP-Server
@@ -45,8 +52,6 @@ void setup()
 {
 	Serial.begin(115200);
 	delay(10);
-	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-	//FastLED.setBrightness(5);
 	connect_to_wifi();
 	print_connection();
 	timeClient.begin();
@@ -57,6 +62,11 @@ void setup()
 	utc = Rtc.GetDateTime();
 	old_local = myTZ.toLocal(utc, &tcr);
 	delay(10);
+	for (uint16_t i = 0; i != ColorCount; ++i) {
+		Colors[i] = HslColor(i * distance, 1.0, 0.03);
+	}
+	strip.Begin();
+	strip.Show();
 }
 
 void loop()
@@ -67,6 +77,12 @@ void loop()
 		printDateTime(local, tcr -> abbrev);
 		WS2812B_Write_Time();
 		old_local = myTZ.toLocal(utc, &tcr);
+		for (int i = 0; i != ColorCount; ++i) {
+			if (Colors[i].H < 1 - step)
+				Colors[i].H += step;
+			else
+				Colors[i].H = 0;
+		}
 	}
 }
 
@@ -110,24 +126,26 @@ void printDateTime(time_t t, const char *tz)
 
 void WS2812B_Write_Time()
 {
-	WS2812B_Write_Number(0, 5, second(local), 120);
-	WS2812B_Write_Number(6, 11, minute(local), 0);
-	WS2812B_Write_Number(12, 16, hour(local), 90);
-	WS2812B_Write_Number(17, 21, day(local), 247);
-	WS2812B_Write_Number(22, 25, month(local), 190);
-	FastLED.show();
+	WS2812B_Write_Number(0, 6, second(local), Colors[0]);
+	WS2812B_Write_Number(6, 12, minute(local), Colors[2]);
+	WS2812B_Write_Number(12, 17, hour(local), Colors[4]);
+	WS2812B_Write_Number(17, 22, day(local), Colors[1]);
+	WS2812B_Write_Number(22, 25, month(local), Colors[3]);
+	strip.Show();
 }
 
-void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, uint8_t color)
+void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, HslColor color)
 {
 	for (uint16_t i = 0; i !=endIndex; i++) {
 		uint8_t mask = 1 << i;
 		uint16_t pixelID = startIndex +i;
 		if ((number & mask) != 0) {
-			leds[pixelID] = CHSV(color,255,255);
+			strip.SetPixelColor(pixelID, color);
+			//leds[pixelID] = CHSV(color,255,255);
 		}
 		else {
-			leds[pixelID] = CHSV(0,0,0);
+			strip.SetPixelColor(pixelID, Black);
+			//leds[pixelID] = CHSV(0,0,0);
 		}
 	}
 }

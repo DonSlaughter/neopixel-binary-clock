@@ -22,4 +22,4 @@ void printDateTime(time_t t, const char *tz);
 //Write the time to leds.
 void WS2812B_Write_Time();
 //Converts Time to led numbers
-void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, uint8_t color);
+void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, HslColor color);
