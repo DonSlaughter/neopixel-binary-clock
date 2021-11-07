@@ -22,5 +22,12 @@ Everything can be changed with TimeChangeRule.
 * Screw Terminal
 * 26 x WS2812B SMD Led's
 
+## Connect to Wi-Fi
+create a file named secrets.h in the folder src.
+it should contain your wifi network (ssid) and your wifi password:
+```c
+const char *ssid = "";
+const char *pass = "";
+```
 ## Code
 Code needs to be cleand up
