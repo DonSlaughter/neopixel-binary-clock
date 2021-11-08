@@ -1,23 +1,23 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
-#include <NTPClient.h>
+//#include <ESP8266WiFi.h>
+//#include <WiFiUdp.h>
+//#include <NTPClient.h>
 #include <RtcDS3231.h>
 #include <TimeLib.h>
 #include <Timezone.h>
-#define FASTLED_ALLOW_INTERRUPTS 1
-#define INTERRUPT_THRESHOLD 1
-#define FASTLED_INTERRUPT_RETRY_COUNT 0
+//#define FASTLED_ALLOW_INTERRUPTS 0
+//#define INTERRUPT_THRESHOLD 1
+//#define FASTLED_INTERRUPT_RETRY_COUNT 0
 #include <FastLED.h>
 #include "secrets.h"
 #include "main.h"
 
 
 // Define NTP Client to get time
-WiFiUDP ntpUDP;
+//WiFiUDP ntpUDP;
 //NTPClient updates normall every minute
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org");
+//NTPClient timeClient(ntpUDP, "europe.pool.ntp.org");
 
 //Changing Timezone and using Daylightsaving
 TimeChangeRule mySTD = {"CET", Last, Sun, Oct, 3, 60};
@@ -46,12 +46,12 @@ void setup()
 	Serial.begin(115200);
 	delay(10);
 	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-	connect_to_wifi();
-	print_connection();
-	timeClient.begin();
+	//connect_to_wifi();
+	//print_connection();
+	//timeClient.begin();
 	delay(25);
 	Rtc.Begin();
-	RTC_Update();
+	//RTC_Update();
 	utc = Rtc.GetDateTime();
 	old_local = myTZ.toLocal(utc, &tcr);
 	delay(10);
@@ -69,33 +69,33 @@ void loop()
 	}
 }
 
-void connect_to_wifi()
-{
-	Serial.print("Connecting to ");
-	Serial.println(ssid);
-	WiFi.begin(ssid, pass);
-	while (WiFi.status() != WL_CONNECTED) {
-		delay(500);
-		Serial.print(".");
-	}
-}
+//void connect_to_wifi()
+//{
+//	Serial.print("Connecting to ");
+//	Serial.println(ssid);
+//	WiFi.begin(ssid, pass);
+//	while (WiFi.status() != WL_CONNECTED) {
+//		delay(500);
+//		Serial.print(".");
+//	}
+//}
+//
+//void print_connection()
+//{
+//	Serial.println();
+//	Serial.print("Connected to: ");
+//	Serial.println(ssid);
+//	Serial.print("Local IP-Adress: ");
+//	Serial.println(WiFi.localIP());
+//}
 
-void print_connection()
-{
-	Serial.println();
-	Serial.print("Connected to: ");
-	Serial.println(ssid);
-	Serial.print("Local IP-Adress: ");
-	Serial.println(WiFi.localIP());
-}
-
-void RTC_Update()
-{
-	timeClient.update();
-	unsigned long epochTime = timeClient.getEpochTime();
-	Rtc.SetDateTime(epochTime);
-	Serial.println("Time Set");
-}
+//void RTC_Update()
+//{
+//	timeClient.update();
+//	unsigned long epochTime = timeClient.getEpochTime();
+//	Rtc.SetDateTime(epochTime);
+//	Serial.println("Time Set");
+//}
 
 void printDateTime(time_t t, const char *tz)
 {
