@@ -6,6 +6,9 @@
 #include <RtcDS3231.h>
 #include <TimeLib.h>
 #include <Timezone.h>
+#define FASTLED_ALLOW_INTERRUPTS 1
+#define INTERRUPT_THRESHOLD 1
+#define FASTLED_INTERRUPT_RETRY_COUNT 0
 #include <FastLED.h>
 #include "secrets.h"
 #include "main.h"
@@ -37,23 +40,18 @@ time_t old_local;
 
 CRGB leds[NUM_LEDS];
 
-unsigned long ntp_start_time;
-//Wait 10 seconds for NTP-Server
-unsigned long ntp_wait_time = 10000;
 
 void setup()
 {
 	Serial.begin(115200);
 	delay(10);
 	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-	//FastLED.setBrightness(5);
 	connect_to_wifi();
 	print_connection();
 	timeClient.begin();
 	delay(25);
 	Rtc.Begin();
-	ntp_start_time = millis();
-	//RTC_Update();
+	RTC_Update();
 	utc = Rtc.GetDateTime();
 	old_local = myTZ.toLocal(utc, &tcr);
 	delay(10);
@@ -67,6 +65,7 @@ void loop()
 		printDateTime(local, tcr -> abbrev);
 		WS2812B_Write_Time();
 		old_local = myTZ.toLocal(utc, &tcr);
+		delay(10);
 	}
 }
 
@@ -110,11 +109,11 @@ void printDateTime(time_t t, const char *tz)
 
 void WS2812B_Write_Time()
 {
-	WS2812B_Write_Number(0, 5, second(local), 120);
-	WS2812B_Write_Number(6, 11, minute(local), 0);
-	WS2812B_Write_Number(12, 16, hour(local), 90);
-	WS2812B_Write_Number(17, 21, day(local), 247);
-	WS2812B_Write_Number(22, 25, month(local), 190);
+	WS2812B_Write_Number(0, 6, second(local), 120);
+	WS2812B_Write_Number(6, 12, minute(local), 0);
+	WS2812B_Write_Number(12, 17, hour(local), 90);
+	WS2812B_Write_Number(17, 22, day(local), 247);
+	WS2812B_Write_Number(22, 26, month(local), 190);
 	FastLED.show();
 }
 
@@ -124,10 +123,21 @@ void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number
 		uint8_t mask = 1 << i;
 		uint16_t pixelID = startIndex +i;
 		if ((number & mask) != 0) {
-			leds[pixelID] = CHSV(color,255,255);
+			leds[pixelID] = CHSV(color,255,20);
 		}
 		else {
 			leds[pixelID] = CHSV(0,0,0);
 		}
 	}
+	//FastLED.show();
+}
+
+void test_one_led(uint8_t pixelID)
+{
+	leds[pixelID] = CRGB::Red;
+	delay(1000);
+	FastLED.show();
+	leds[pixelID] = CRGB::Black;
+	delay(1000);
+	FastLED.show();
 }
