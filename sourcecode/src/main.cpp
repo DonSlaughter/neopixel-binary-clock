@@ -1,8 +1,5 @@
 #include <Arduino.h>
 #include <Wire.h>
-//#include <ESP8266WiFi.h>
-//#include <WiFiUdp.h>
-//#include <NTPClient.h>
 #include <RtcDS3231.h>
 #include <TimeLib.h>
 #include <Timezone.h>
@@ -12,6 +9,12 @@
 #include <FastLED.h>
 #include "secrets.h"
 #include "main.h"
+#define WITH_WLAN 0
+#ifdef WITH_WLAN
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
+#endif
 
 
 // Define NTP Client to get time
@@ -35,16 +38,17 @@ time_t local;
 time_t old_local;
 
 #define LED_PIN D5
-#define NUM_LEDS 63
+#define NUM_LEDS 26
 #define COLOR_ORDER BRG
 
+int a;
 CRGB leds[NUM_LEDS];
-
+int b;
 
 void setup()
 {
 	Serial.begin(115200);
-	delay(10);
+	//while (!Serial){;}
 	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
 	//connect_to_wifi();
 	//print_connection();
@@ -54,6 +58,7 @@ void setup()
 	//RTC_Update();
 	utc = Rtc.GetDateTime();
 	old_local = myTZ.toLocal(utc, &tcr);
+	//old_local = time(NULL);
 	delay(10);
 }
 
@@ -69,33 +74,36 @@ void loop()
 	}
 }
 
-//void connect_to_wifi()
-//{
-//	Serial.print("Connecting to ");
-//	Serial.println(ssid);
-//	WiFi.begin(ssid, pass);
-//	while (WiFi.status() != WL_CONNECTED) {
-//		delay(500);
-//		Serial.print(".");
-//	}
-//}
-//
-//void print_connection()
-//{
-//	Serial.println();
-//	Serial.print("Connected to: ");
-//	Serial.println(ssid);
-//	Serial.print("Local IP-Adress: ");
-//	Serial.println(WiFi.localIP());
-//}
+#if WITH_WLAN
+void connect_to_wifi()
+{
+	Serial.print("Connecting to ");
+	Serial.println(ssid);
+	WiFi.begin(ssid, pass);
+	while (WiFi.status() != WL_CONNECTED) {
+		delay(500);
+		Serial.print(".");
+	}
+}
 
-//void RTC_Update()
-//{
-//	timeClient.update();
-//	unsigned long epochTime = timeClient.getEpochTime();
-//	Rtc.SetDateTime(epochTime);
-//	Serial.println("Time Set");
-//}
+void print_connection()
+{
+	Serial.println();
+	Serial.print("Connected to: ");
+	Serial.println(ssid);
+	Serial.print("Local IP-Adress: ");
+	Serial.println(WiFi.localIP());
+}
+
+void RTC_Update()
+{
+	timeClient.update();
+	unsigned long epochTime = timeClient.getEpochTime();
+	Rtc.SetDateTime(epochTime);
+	Serial.println("Time Set");
+	timeClient.end();
+}
+#endif
 
 void printDateTime(time_t t, const char *tz)
 {
@@ -109,25 +117,25 @@ void printDateTime(time_t t, const char *tz)
 
 void WS2812B_Write_Time()
 {
-	WS2812B_Write_Number(0, 6, second(local), 120);
-	WS2812B_Write_Number(6, 12, minute(local), 0);
-	WS2812B_Write_Number(12, 17, hour(local), 90);
-	WS2812B_Write_Number(17, 22, day(local), 247);
-	WS2812B_Write_Number(22, 26, month(local), 190);
+	WS2812B_Write_Number(0, 5, second(local), 120);
+	WS2812B_Write_Number(6, 11, minute(local), 0);
+	WS2812B_Write_Number(12, 16, hour(local), 90);
+	WS2812B_Write_Number(17, 21, day(local), 247);
+	WS2812B_Write_Number(22, 25, month(local), 190);
 	FastLED.show();
 }
 
 void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, uint8_t color)
 {
-	for (uint16_t i = 0; i !=endIndex; i++) {
-		uint8_t mask = 1 << i;
-		uint16_t pixelID = startIndex +i;
+	uint16_t mask = 1;
+	for (uint16_t i = startIndex ; i <= endIndex ; i++) {
 		if ((number & mask) != 0) {
-			leds[pixelID] = CHSV(color,255,20);
+			leds[i] = CHSV(color,255,20);
 		}
 		else {
-			leds[pixelID] = CHSV(0,0,0);
+			leds[i] = CHSV(0,0,0);
 		}
+		mask = mask << 1;
 	}
 	//FastLED.show();
 }
