@@ -9,18 +9,20 @@
 #include <FastLED.h>
 #include "secrets.h"
 #include "main.h"
+//Turning WiFi off or on. It seems there are som interrupt Bugs concerning the
+//WiFi. If Wifi is turned off the Clock will work as expected. If it is turned
+//on the first LED will flicker.
 #define WITH_WLAN 0
-#ifdef WITH_WLAN
+#if WITH_WLAN
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <NTPClient.h>
-#endif
-
 
 // Define NTP Client to get time
-//WiFiUDP ntpUDP;
+WiFiUDP ntpUDP;
 //NTPClient updates normall every minute
-//NTPClient timeClient(ntpUDP, "europe.pool.ntp.org");
+NTPClient timeClient(ntpUDP, "europe.pool.ntp.org");
+#endif
 
 //Changing Timezone and using Daylightsaving
 TimeChangeRule mySTD = {"CET", Last, Sun, Oct, 3, 60};
@@ -36,26 +38,47 @@ RtcDS3231<TwoWire> Rtc(Wire);
 time_t utc;
 time_t local;
 time_t old_local;
+time_t night_time;
 
+//LED Parameter and definitions
 #define LED_PIN D5
 #define NUM_LEDS 26
 #define COLOR_ORDER BRG
 
-int a;
+const uint8_t saturation = 255;
+uint8_t value = 20;
+//Night Mode parameters:
+uint8_t high_brightness = 100;
+uint8_t dimmed_brightness = 20;
+uint8_t start_hour = 20;
+uint8_t stop_hour = 7;
+
+CHSV Colors[5];
+CHSV Black(0,0,0);
+
 CRGB leds[NUM_LEDS];
-int b;
+
+bool night_mode = true;
+
 
 void setup()
 {
 	Serial.begin(115200);
-	//while (!Serial){;}
+	delay(250);
 	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-	//connect_to_wifi();
-	//print_connection();
-	//timeClient.begin();
-	delay(25);
+	Colors[0] = CHSV(0, saturation, value);
+	Colors[1] = CHSV(51, saturation, value);
+	Colors[2] = CHSV(102, saturation, value);
+	Colors[3] = CHSV(153, saturation, value);
+	Colors[4] = CHSV(204, saturation, value);
+
 	Rtc.Begin();
-	//RTC_Update();
+#if WITH_WLAN
+	connect_to_wifi();
+	print_connection();
+	timeClient.begin();
+	RTC_Update();
+#endif
 	utc = Rtc.GetDateTime();
 	old_local = myTZ.toLocal(utc, &tcr);
 	//old_local = time(NULL);
@@ -68,9 +91,11 @@ void loop()
 	local = myTZ.toLocal(utc, &tcr);
 	if (second(local) != second(old_local)){
 		printDateTime(local, tcr -> abbrev);
+		night_mode_on();
 		WS2812B_Write_Time();
 		old_local = myTZ.toLocal(utc, &tcr);
-		delay(10);
+		change_colors();
+		//delay(10);
 	}
 }
 
@@ -105,6 +130,15 @@ void RTC_Update()
 }
 #endif
 
+void change_colors()
+{
+	uint8_t gHueDelta = 1;
+	for (uint8_t i = 0; i < 5; i++) {
+		Colors[i].hue += gHueDelta;
+		Colors[i].val = value;
+	}
+}
+
 void printDateTime(time_t t, const char *tz)
 {
 	char buf[32];
@@ -117,29 +151,41 @@ void printDateTime(time_t t, const char *tz)
 
 void WS2812B_Write_Time()
 {
-	WS2812B_Write_Number(0, 5, second(local), 120);
-	WS2812B_Write_Number(6, 11, minute(local), 0);
-	WS2812B_Write_Number(12, 16, hour(local), 90);
-	WS2812B_Write_Number(17, 21, day(local), 247);
-	WS2812B_Write_Number(22, 25, month(local), 190);
+	WS2812B_Write_Number(0, 5, second(local), Colors[0]);
+	WS2812B_Write_Number(6, 11, minute(local), Colors[2]);
+	WS2812B_Write_Number(12, 16, hour(local), Colors[4]);
+	WS2812B_Write_Number(17, 21, day(local), Colors[1]);
+	WS2812B_Write_Number(22, 25, month(local), Colors[3]);
 	FastLED.show();
 }
 
-void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, uint8_t color)
+void WS2812B_Write_Number(uint8_t startIndex, uint8_t endIndex, uint8_t number, CHSV color)
 {
-	uint16_t mask = 1;
-	for (uint16_t i = startIndex ; i <= endIndex ; i++) {
+	uint8_t mask = 1;
+	for (uint8_t i = startIndex ; i <= endIndex ; i++) {
 		if ((number & mask) != 0) {
-			leds[i] = CHSV(color,255,20);
+			leds[i] = color;
 		}
 		else {
-			leds[i] = CHSV(0,0,0);
+			leds[i] = Black;
 		}
 		mask = mask << 1;
 	}
-	//FastLED.show();
 }
 
+void night_mode_on()
+{
+	if (night_mode == true) {
+		if ((hour(local) >= start_hour) || ((hour(local) >= 0) && (hour(local) <= stop_hour))) {
+			value = dimmed_brightness;
+		}
+		else {
+			value = high_brightness;
+		}
+	}
+}
+
+//Debug Functions
 void test_one_led(uint8_t pixelID)
 {
 	leds[pixelID] = CRGB::Red;

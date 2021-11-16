@@ -19,9 +19,14 @@ void print_connection();
 void RTC_Update();
 //Print formatted Timestring on Serial Monitor
 void printDateTime(time_t t, const char *tz);
+//change color
+void change_colors();
 //Write the time to leds.
 void WS2812B_Write_Time();
 //Converts Time to led numbers
-void WS2812B_Write_Number(uint16_t startIndex, uint16_t endIndex, uint8_t number, uint8_t color);
-//test one led
+void WS2812B_Write_Number(uint8_t startIndex, uint8_t endIndex, uint8_t number, CHSV color);
+//function to dimm the lights between two hours
+void night_mode_on();
+void night_mode_off();
+//Debug Function to check if LED
 void test_one_led(uint8_t pixelID);
