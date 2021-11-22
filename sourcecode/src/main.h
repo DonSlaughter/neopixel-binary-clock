@@ -28,5 +28,5 @@ void WS2812B_Write_Number(uint8_t startIndex, uint8_t endIndex, uint8_t number, 
 //function to dimm the lights between two hours
 void night_mode_on();
 void night_mode_off();
-//Debug Function to check if LED
-void test_one_led(uint8_t pixelID);
+//Debug Function to check if LED's work correctly
+void test_all_leds();

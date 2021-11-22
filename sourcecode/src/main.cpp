@@ -66,6 +66,7 @@ void setup()
 	Serial.begin(115200);
 	delay(250);
 	FastLED.addLeds<WS2812B, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
+	//test_all_leds();
 	Colors[0] = CHSV(0, saturation, value);
 	Colors[1] = CHSV(51, saturation, value);
 	Colors[2] = CHSV(102, saturation, value);
@@ -186,12 +187,30 @@ void night_mode_on()
 }
 
 //Debug Functions
-void test_one_led(uint8_t pixelID)
+
+void test_all_leds()
 {
-	leds[pixelID] = CRGB::Red;
-	delay(1000);
-	FastLED.show();
-	leds[pixelID] = CRGB::Black;
-	delay(1000);
-	FastLED.show();
+	char buf[20];
+	Serial.print("Starting Test");
+	for (uint8_t i = 0; i <= NUM_LEDS; i++){
+		leds[i] = CRGB::Red;
+		FastLED.show();
+		sprintf(buf, "Led %d, Color Red", i);
+		Serial.println(buf);
+		delay(100);
+		leds[i] = CRGB::Green;
+		FastLED.show();
+		sprintf(buf, "Led %d, Color Green", i);
+		Serial.println(buf);
+		delay(100);
+		leds[i] = CRGB::Blue;
+		FastLED.show();
+		sprintf(buf, "Led %d, Color Blue", i);
+		Serial.println(buf);
+		delay(100);
+		leds[i] = CRGB::Black;
+		FastLED.show();
+		sprintf(buf, "Led %d, off", i);
+		Serial.println(buf);
+	}
 }
